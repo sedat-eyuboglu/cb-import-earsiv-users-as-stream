@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using System.Diagnostics;
+using System.IO.Compression;
 using System.Xml;
 using System.Xml.Linq;
 using Couchbase;
@@ -21,6 +22,8 @@ using (var zipArchive = new ZipArchive(File.OpenRead(zipFile)))
     {
         using(var xReader = XmlReader.Create(xmlStream))
         {
+            var sw = new Stopwatch();
+            sw.Start();
             while(xReader.Read())
             {
                 if (xReader.NodeType != XmlNodeType.Element || xReader.Name.Equals("User") == false)
@@ -37,12 +40,14 @@ using (var zipArchive = new ZipArchive(File.OpenRead(zipFile)))
                     user.Type = userXml.Element(nameof(user.Type))?.Value ?? string.Empty;
                     user.FirstCreationTime = userXml.Element(nameof(user.FirstCreationTime))?.Value ?? string.Empty;
                     user.AccountType = userXml.Element(nameof(user.AccountType))?.Value ?? string.Empty;
-                    
                     var userKey = $"{nameof(EArsivUser)}:{user.Identifier}";
+                    var existsResult = await collection.ExistsAsync(userKey);
                     await collection.UpsertAsync(userKey, user);
                     Console.WriteLine($"{(++index).ToString().PadRight(15)}:{user.Title}");
                 }
             }
+            sw.Stop();
+            Console.WriteLine($"Time elapsed: {sw.Elapsed.TotalSeconds}");
         }
     }
 }
