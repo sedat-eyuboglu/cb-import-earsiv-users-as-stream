@@ -10,8 +10,6 @@ var cbBucket = args[2];
 var cbUser = args[3];
 var cbPsw = args[4];
 var index = 0;
-var consoleWidth = Console.LargestWindowWidth;
-
 
 var cluster = await Cluster.ConnectAsync(cbConnection, cbUser, cbPsw);
 var collection = (await cluster.BucketAsync(cbBucket)).DefaultCollection();
@@ -41,7 +39,6 @@ using (var zipArchive = new ZipArchive(File.OpenRead(zipFile)))
                     user.FirstCreationTime = userXml.Element(nameof(user.FirstCreationTime))?.Value ?? string.Empty;
                     user.AccountType = userXml.Element(nameof(user.AccountType))?.Value ?? string.Empty;
                     var userKey = $"{nameof(EArsivUser)}:{user.Identifier}";
-                    var existsResult = await collection.ExistsAsync(userKey);
                     await collection.UpsertAsync(userKey, user);
                     Console.WriteLine($"{(++index).ToString().PadRight(15)}:{user.Title}");
                 }
